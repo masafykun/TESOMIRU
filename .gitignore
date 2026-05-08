@@ -22,3 +22,6 @@ Podfile.lock
 
 # macOS
 .DS_Store
+
+# Secrets
+TESOMIRU/Config.swift

@@ -1,0 +1,5 @@
+// Copy this file to Config.swift and set your API endpoint.
+// Config.swift is gitignored and must NOT be committed.
+enum Config {
+    static let palmReadingAPIURL = "https://your-api-server.example.com/api/palm-reading"
+}

@@ -47,7 +47,7 @@ final class PalmReadingService {
     static let shared = PalmReadingService()
     private init() {}
 
-    private let serverURL = URL(string: "https://YOUR_API_SERVER/api/palm-reading")!
+    private let serverURL = URL(string: Config.palmReadingAPIURL)!
 
     /// 実際のサーバーに画像を送り、手相鑑定結果を取得する
     func analyze(image: UIImage) async throws -> PalmReadingResult {
