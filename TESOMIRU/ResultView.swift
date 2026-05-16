@@ -5,11 +5,13 @@ struct ResultView: View {
     let onRestart: () -> Void
     let onRetry: () -> Void
 
+    @EnvironmentObject private var store: StoreManager
     @State private var appeared = false
     @State private var cardOpacities: [Double] = Array(repeating: 0, count: 6)
     @State private var selectedLine: PalmReadingResult.LineReading?
-    @State private var isPremium = false
     @State private var showPaywall = false
+
+    private var isPremium: Bool { store.isPremium }
 
     var body: some View {
         ZStack {
@@ -48,7 +50,8 @@ struct ResultView: View {
         }
         .sheet(isPresented: $showPaywall) {
             PaywallSheet {
-                isPremium = true
+                // 購入成功時に何かしたい場合はここに書く。
+                // 解除状態は store.isPremium で自動的に反映される
             }
         }
     }
