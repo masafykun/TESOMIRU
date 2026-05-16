@@ -1,0 +1,86 @@
+{
+  "identifier" : "B3F09A2E-7A4D-4A8E-9C1D-3E5F6B8A2D11",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_locale" : "ja_JP",
+    "_storefront" : "JPN",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "C4E1F8A6-9B5D-4F3E-A872-1D2C7B9E4F88",
+      "localizations" : [
+        {
+          "description" : "TESOMIRUプレミアム鑑定",
+          "displayName" : "Premium",
+          "locale" : "ja_JP"
+        }
+      ],
+      "name" : "Premium",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "480",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "A1B2C3D4-E5F6-7A8B-9C0D-1E2F3A4B5C6D",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "毎月自動更新の月額プラン",
+              "displayName" : "月額プレミアム鑑定",
+              "locale" : "ja_JP"
+            }
+          ],
+          "productID" : "org.masafy.TESOMIRU.premium.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Monthly Premium",
+          "subscriptionGroupID" : "C4E1F8A6-9B5D-4F3E-A872-1D2C7B9E4F88",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "2400",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "B2C3D4E5-F6A7-8B9C-0D1E-2F3A4B5C6D7E",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "年間自動更新の年額プラン（実質月200円相当）",
+              "displayName" : "年間プレミアム鑑定",
+              "locale" : "ja_JP"
+            }
+          ],
+          "productID" : "org.masafy.TESOMIRU.premium.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Yearly Premium",
+          "subscriptionGroupID" : "C4E1F8A6-9B5D-4F3E-A872-1D2C7B9E4F88",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}
