@@ -33,7 +33,7 @@
           "codeOffers" : [
 
           ],
-          "displayPrice" : "480",
+          "displayPrice" : "500",
           "familyShareable" : false,
           "groupNumber" : 1,
           "internalID" : "A1B2C3D4-E5F6-7A8B-9C0D-1E2F3A4B5C6D",
@@ -58,14 +58,14 @@
           "codeOffers" : [
 
           ],
-          "displayPrice" : "2400",
+          "displayPrice" : "2500",
           "familyShareable" : false,
           "groupNumber" : 1,
           "internalID" : "B2C3D4E5-F6A7-8B9C-0D1E-2F3A4B5C6D7E",
           "introductoryOffer" : null,
           "localizations" : [
             {
-              "description" : "年間自動更新の年額プラン（実質月200円相当）",
+              "description" : "年間自動更新の年額プラン（実質月208円相当）",
               "displayName" : "年間プレミアム鑑定",
               "locale" : "ja_JP"
             }

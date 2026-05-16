@@ -11,3 +11,7 @@ DerivedData/
 *.ipa
 *.dSYM.zip
 *.dSYM
+
+# App Store提出関連（GitHubには載せない、ローカル管理）
+screenshots/
+app-store-content/
