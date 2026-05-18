@@ -5,6 +5,8 @@ struct AnalyzingView: View {
     let onComplete: (PalmReadingResult) -> Void
     let onError: () -> Void
 
+    @EnvironmentObject private var readingStore: ReadingStore
+
     @State private var pulse1Scale: CGFloat = 1.0
     @State private var pulse1Opacity: Double = 0.6
     @State private var pulse2Scale: CGFloat = 1.0
@@ -167,6 +169,7 @@ struct AnalyzingView: View {
     private func runAnalysis() async {
         do {
             let result = try await PalmReadingService.shared.analyze(image: image)
+            readingStore.incrementTodayReadingCount()
             onComplete(result)
         } catch {
             errorMessage = error.localizedDescription

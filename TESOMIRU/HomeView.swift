@@ -2,10 +2,19 @@ import SwiftUI
 
 struct HomeView: View {
     let onStart: () -> Void
+    let onOpenTimeline: () -> Void
+
+    @EnvironmentObject private var store: ReadingStore
+    @EnvironmentObject private var paywallStore: StoreManager
 
     @State private var glowRadius: CGFloat = 20
     @State private var glowOpacity: Double = 0.5
     @State private var handScale: CGFloat = 1.0
+    @State private var showPaywall = false
+
+    private var canPerformReading: Bool {
+        store.canPerformReading(isPremium: paywallStore.isPremium)
+    }
 
     var body: some View {
         ZStack {
@@ -17,6 +26,14 @@ struct HomeView: View {
                 titleSection
                 Spacer().frame(height: 60)
                 startButton
+                if !paywallStore.isPremium {
+                    remainingCountLabel
+                        .padding(.top, 10)
+                }
+                if !store.readings.isEmpty {
+                    timelineLink
+                        .padding(.top, 16)
+                }
                 Spacer().frame(height: 80)
             }
             .padding(.horizontal, 32)
@@ -27,6 +44,9 @@ struct HomeView: View {
                 glowOpacity = 0.9
                 handScale = 1.08
             }
+        }
+        .sheet(isPresented: $showPaywall) {
+            PaywallSheet {}
         }
     }
 
@@ -110,30 +130,86 @@ struct HomeView: View {
     }
 
     private var startButton: some View {
-        Button(action: onStart) {
+        Button {
+            if canPerformReading {
+                onStart()
+            } else {
+                showPaywall = true
+            }
+        } label: {
             HStack(spacing: 10) {
-                Text("手相を占う")
-                    .font(.system(size: 17, weight: .semibold))
-                Image(systemName: "arrow.right")
-                    .font(.system(size: 15, weight: .semibold))
+                if canPerformReading {
+                    Text("手相を占う")
+                        .font(.system(size: 17, weight: .semibold))
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 15, weight: .semibold))
+                } else {
+                    Image(systemName: "crown.fill")
+                        .font(.system(size: 15))
+                    Text("プレミアムで続きを占う")
+                        .font(.system(size: 17, weight: .semibold))
+                }
             }
             .foregroundColor(.white)
             .frame(maxWidth: .infinity)
             .frame(height: 56)
             .background(
                 LinearGradient(
-                    colors: [Color.appPrimary, Color(red: 0.35, green: 0.18, blue: 0.85)],
+                    colors: canPerformReading
+                        ? [Color.appPrimary, Color(red: 0.35, green: 0.18, blue: 0.85)]
+                        : [Color.appGold, .orange],
                     startPoint: .leading,
                     endPoint: .trailing
                 )
             )
             .clipShape(Capsule())
-            .shadow(color: Color.appPrimary.opacity(0.6), radius: 16, y: 8)
+            .shadow(color: (canPerformReading ? Color.appPrimary : Color.appGold).opacity(0.6), radius: 16, y: 8)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var remainingCountLabel: some View {
+        let remaining = max(0, ReadingStore.freeDailyReadingLimit - store.todayReadingCount)
+        return HStack(spacing: 6) {
+            Image(systemName: remaining > 0 ? "info.circle" : "exclamationmark.triangle.fill")
+                .font(.system(size: 11))
+            if remaining > 0 {
+                Text("無料鑑定 残り \(remaining)/\(ReadingStore.freeDailyReadingLimit) 回 (今日)")
+                    .font(.system(size: 12))
+            } else {
+                Text("本日の無料鑑定は使い切りました")
+                    .font(.system(size: 12))
+            }
+        }
+        .foregroundColor(remaining > 0 ? Color.appSubtext : Color.appGold)
+    }
+
+    private var timelineLink: some View {
+        Button(action: onOpenTimeline) {
+            HStack(spacing: 8) {
+                Image(systemName: "clock.arrow.circlepath")
+                    .font(.system(size: 14, weight: .semibold))
+                Text("過去の鑑定 (\(store.readings.count) 件)")
+                    .font(.system(size: 14, weight: .medium))
+            }
+            .foregroundColor(Color.appPrimaryLight)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 10)
+            .background(
+                Capsule()
+                    .fill(Color.appCard.opacity(0.6))
+                    .overlay(
+                        Capsule()
+                            .strokeBorder(Color.appPrimary.opacity(0.3), lineWidth: 1)
+                    )
+            )
         }
         .buttonStyle(.plain)
     }
 }
 
 #Preview {
-    HomeView(onStart: {})
+    HomeView(onStart: {}, onOpenTimeline: {})
+        .environmentObject(ReadingStore.shared)
+        .environmentObject(StoreManager())
 }

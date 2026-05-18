@@ -3,11 +3,25 @@ import UIKit
 // MARK: - Models
 
 struct PalmReadingResult: Identifiable, Equatable {
-    let id = UUID()
+    let id: UUID
     let summary: String
     let lines: [LineReading]
     let luckyColor: String
     let luckyNumber: Int
+
+    init(
+        id: UUID = UUID(),
+        summary: String,
+        lines: [LineReading],
+        luckyColor: String,
+        luckyNumber: Int
+    ) {
+        self.id = id
+        self.summary = summary
+        self.lines = lines
+        self.luckyColor = luckyColor
+        self.luckyNumber = luckyNumber
+    }
 
     static func == (lhs: PalmReadingResult, rhs: PalmReadingResult) -> Bool {
         lhs.id == rhs.id
@@ -16,10 +30,50 @@ struct PalmReadingResult: Identifiable, Equatable {
     struct LineReading: Identifiable {
         let id = UUID()
         let name: String
-        let icon: String   // SF Symbol name
+        let icon: String
         let iconColor: UIColor
         let description: String
-        let score: Int     // 1-5
+        let score: Int
+
+        init(name: String, description: String, score: Int) {
+            self.name = name
+            self.description = description
+            self.score = max(1, min(5, score))
+            let meta = Self.iconMeta(for: name)
+            self.icon = meta.icon
+            self.iconColor = meta.color
+        }
+
+        static func iconMeta(for name: String) -> (icon: String, color: UIColor) {
+            switch name {
+            case "生命線": return ("heart.fill", .systemRed)
+            case "感情線": return ("waveform.path.ecg", .systemBlue)
+            case "頭脳線": return ("lightbulb.fill", .systemGreen)
+            case "運命線": return ("star.fill", .systemYellow)
+            default:       return ("circle.fill", .systemPurple)
+            }
+        }
+    }
+}
+
+// MARK: - Chat Models
+
+struct PalmChatMessage: Identifiable, Codable, Equatable {
+    let id: UUID
+    let role: Role
+    let content: String
+    let date: Date
+
+    init(id: UUID = UUID(), role: Role, content: String, date: Date = Date()) {
+        self.id = id
+        self.role = role
+        self.content = content
+        self.date = date
+    }
+
+    enum Role: String, Codable {
+        case user
+        case assistant
     }
 }
 
@@ -47,16 +101,16 @@ final class PalmReadingService {
     static let shared = PalmReadingService()
     private init() {}
 
-    private let serverURL = URL(string: "https://tesomiru.1qaz.jp/api/palm-reading")!
+    private let analyzeURL = URL(string: "https://tesomiru.1qaz.jp/api/palm-reading")!
+    private let chatURL = URL(string: "https://tesomiru.1qaz.jp/api/palm-chat")!
 
-    /// 実際のサーバーに画像を送り、手相鑑定結果を取得する
     func analyze(image: UIImage) async throws -> PalmReadingResult {
         guard let imageData = image.jpegData(compressionQuality: 0.8) else {
             throw PalmReadingError.invalidImage
         }
 
         let boundary = "Boundary-\(UUID().uuidString)"
-        var request = URLRequest(url: serverURL)
+        var request = URLRequest(url: analyzeURL)
         request.httpMethod = "POST"
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         request.httpBody = buildMultipart(data: imageData, boundary: boundary, fieldName: "image", filename: "palm.jpg", mimeType: "image/jpeg")
@@ -78,47 +132,65 @@ final class PalmReadingService {
         return try decodeResponse(data)
     }
 
-    // MARK: - Mock（サーバー準備前の開発用）
+    /// 鑑定結果について追加質問する
+    func chat(reading: PalmReadingResult, history: [PalmChatMessage], message: String) async throws -> String {
+        struct ChatRequestLine: Encodable {
+            let name: String
+            let description: String
+            let score: Int
+        }
+        struct ChatRequestReading: Encodable {
+            let summary: String
+            let lines: [ChatRequestLine]
+            let luckyColor: String
+            let luckyNumber: Int
+        }
+        struct ChatRequestMessage: Encodable {
+            let role: String
+            let content: String
+        }
+        struct ChatRequest: Encodable {
+            let reading: ChatRequestReading
+            let history: [ChatRequestMessage]
+            let message: String
+        }
 
-    func analyzeMock(image: UIImage) async throws -> PalmReadingResult {
-        // 実際の通信を模倣して3秒待つ
-        try await Task.sleep(for: .seconds(3))
-
-        return PalmReadingResult(
-            summary: "あなたの手相は非常にバランスが取れています。知性と感情の調和が見事で、人生において多くの成功を収めるでしょう。特に対人関係での運が強く、周囲の人々に恵まれた充実した生涯を送ることが期待されます。直感力も優れており、大切な局面での判断力は人一倍です。",
-            lines: [
-                .init(
-                    name: "生命線",
-                    icon: "heart.fill",
-                    iconColor: .systemRed,
-                    description: "力強く長い生命線で、生命力と活力に満ちています。大きな困難にも屈せず、長寿と健康に恵まれるでしょう。中年以降もエネルギッシュに活躍できる暗示があります。",
-                    score: 5
-                ),
-                .init(
-                    name: "感情線",
-                    icon: "waveform.path.ecg",
-                    iconColor: .systemBlue,
-                    description: "深く鮮明な感情線は、豊かな感受性と深い愛情を示しています。人間関係において誠実で信頼される存在です。恋愛運も強く、真剣な愛情を築けるでしょう。",
-                    score: 4
-                ),
-                .init(
-                    name: "頭脳線",
-                    icon: "lightbulb.fill",
-                    iconColor: .systemGreen,
-                    description: "明瞭で長い頭脳線は、優れた知性と分析力を示しています。論理的思考と創造性のバランスが取れており、多彩なアイデアを実現できる力があります。",
-                    score: 4
-                ),
-                .init(
-                    name: "運命線",
-                    icon: "star.fill",
-                    iconColor: .systemYellow,
-                    description: "はっきりとした運命線が手のひらの中央を走り、強い意志と明確な人生目標を持っていることを示しています。キャリアや使命において大きな成果を上げるでしょう。",
-                    score: 5
-                ),
-            ],
-            luckyColor: "紫",
-            luckyNumber: 7
+        let body = ChatRequest(
+            reading: ChatRequestReading(
+                summary: reading.summary,
+                lines: reading.lines.map { ChatRequestLine(name: $0.name, description: $0.description, score: $0.score) },
+                luckyColor: reading.luckyColor,
+                luckyNumber: reading.luckyNumber
+            ),
+            history: history.map { ChatRequestMessage(role: $0.role.rawValue, content: $0.content) },
+            message: message
         )
+
+        var request = URLRequest(url: chatURL)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(body)
+        request.timeoutInterval = 60
+
+        let (data, response): (Data, URLResponse)
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+        } catch {
+            throw PalmReadingError.networkError(error)
+        }
+
+        guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+            let code = (response as? HTTPURLResponse)?.statusCode ?? -1
+            let message = (try? JSONDecoder().decode([String: String].self, from: data))?["error"]
+                ?? "サーバーエラーが発生しました (コード: \(code))"
+            throw PalmReadingError.serverError(code, message)
+        }
+
+        struct ChatResponse: Decodable { let reply: String }
+        guard let res = try? JSONDecoder().decode(ChatResponse.self, from: data) else {
+            throw PalmReadingError.decodingError
+        }
+        return res.reply
     }
 
     // MARK: - Private helpers
@@ -152,24 +224,10 @@ final class PalmReadingService {
             throw PalmReadingError.decodingError
         }
 
-        let iconMap: [String: (icon: String, color: UIColor)] = [
-            "生命線": ("heart.fill", .systemRed),
-            "感情線": ("waveform.path.ecg", .systemBlue),
-            "頭脳線": ("lightbulb.fill", .systemGreen),
-            "運命線": ("star.fill", .systemYellow),
-        ]
-
         return PalmReadingResult(
             summary: res.summary,
-            lines: res.lines.map { line in
-                let meta = iconMap[line.name] ?? ("circle.fill", .systemPurple)
-                return PalmReadingResult.LineReading(
-                    name: line.name,
-                    icon: meta.icon,
-                    iconColor: meta.color,
-                    description: line.description,
-                    score: max(1, min(5, line.score))
-                )
+            lines: res.lines.map {
+                PalmReadingResult.LineReading(name: $0.name, description: $0.description, score: $0.score)
             },
             luckyColor: res.luckyColor,
             luckyNumber: res.luckyNumber

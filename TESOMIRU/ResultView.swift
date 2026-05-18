@@ -6,10 +6,13 @@ struct ResultView: View {
     let onRetry: () -> Void
 
     @EnvironmentObject private var store: StoreManager
+    @EnvironmentObject private var readingStore: ReadingStore
     @State private var appeared = false
     @State private var cardOpacities: [Double] = Array(repeating: 0, count: 6)
     @State private var selectedLine: PalmReadingResult.LineReading?
     @State private var showPaywall = false
+    @State private var savedReading: SavedReading?
+    @State private var showChat = false
 
     private var isPremium: Bool { store.isPremium }
 
@@ -44,16 +47,36 @@ struct ResultView: View {
         }
         .onAppear {
             animateIn()
+            saveReadingIfNeeded()
         }
         .sheet(item: $selectedLine) { line in
             LineDetailSheet(line: line)
         }
         .sheet(isPresented: $showPaywall) {
-            PaywallSheet {
-                // 購入成功時に何かしたい場合はここに書く。
-                // 解除状態は store.isPremium で自動的に反映される
+            PaywallSheet {}
+        }
+        .sheet(isPresented: $showChat) {
+            if let saved = savedReading ?? readingStore.readings.first(where: { $0.id == result.id }) {
+                NavigationStack {
+                    ChatView(reading: saved)
+                        .toolbar {
+                            ToolbarItem(placement: .topBarTrailing) {
+                                Button("閉じる") { showChat = false }
+                                    .foregroundColor(Color.appGold)
+                            }
+                        }
+                }
             }
         }
+    }
+
+    private func saveReadingIfNeeded() {
+        // すでに保存済みなら何もしない
+        guard !readingStore.readings.contains(where: { $0.id == result.id }) else {
+            savedReading = readingStore.readings.first(where: { $0.id == result.id })
+            return
+        }
+        savedReading = readingStore.save(reading: result)
     }
 
     // MARK: - Header
@@ -199,6 +222,30 @@ struct ResultView: View {
 
     private var actionButtons: some View {
         VStack(spacing: 12) {
+            Button {
+                showChat = true
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 15))
+                    Text("AI 占い師に質問する")
+                        .font(.system(size: 16, weight: .semibold))
+                }
+                .foregroundColor(Color.appBg)
+                .frame(maxWidth: .infinity)
+                .frame(height: 54)
+                .background(
+                    LinearGradient(
+                        colors: [Color.appGold, .orange],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .clipShape(Capsule())
+                .shadow(color: Color.appGold.opacity(0.5), radius: 14, y: 6)
+            }
+            .buttonStyle(.plain)
+
             Button(action: onRetry) {
                 HStack(spacing: 8) {
                     Image(systemName: "camera.fill")
@@ -448,10 +495,10 @@ struct ScoreView: View {
         result: PalmReadingResult(
             summary: "あなたの手相は非常にバランスが取れています。知性と感情の調和が見事で、人生において多くの成功を収めるでしょう。",
             lines: [
-                .init(name: "生命線", icon: "heart.fill", iconColor: .systemRed, description: "力強く長い生命線で、生命力と活力に満ちています。", score: 5),
-                .init(name: "感情線", icon: "waveform.path.ecg", iconColor: .systemBlue, description: "深く鮮明な感情線は豊かな感受性を示しています。", score: 4),
-                .init(name: "頭脳線", icon: "lightbulb.fill", iconColor: .systemGreen, description: "明瞭で長い頭脳線は優れた知性を示しています。", score: 4),
-                .init(name: "運命線", icon: "star.fill", iconColor: .systemYellow, description: "はっきりとした運命線が中央を走っています。", score: 5),
+                .init(name: "生命線", description: "力強く長い生命線で、生命力と活力に満ちています。", score: 5),
+                .init(name: "感情線", description: "深く鮮明な感情線は豊かな感受性を示しています。", score: 4),
+                .init(name: "頭脳線", description: "明瞭で長い頭脳線は優れた知性を示しています。", score: 4),
+                .init(name: "運命線", description: "はっきりとした運命線が中央を走っています。", score: 5),
             ],
             luckyColor: "紫",
             luckyNumber: 7

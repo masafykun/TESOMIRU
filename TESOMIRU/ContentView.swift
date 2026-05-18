@@ -18,6 +18,7 @@ enum AppScreen: Equatable {
 struct ContentView: View {
     @State private var screen: AppScreen = .home
     @State private var capturedImage: UIImage?
+    @State private var showTimeline = false
 
     var body: some View {
         ZStack {
@@ -25,11 +26,16 @@ struct ContentView: View {
 
             switch screen {
             case .home:
-                HomeView {
-                    withAnimation(.easeInOut(duration: 0.35)) {
-                        screen = .capture
+                HomeView(
+                    onStart: {
+                        withAnimation(.easeInOut(duration: 0.35)) {
+                            screen = .capture
+                        }
+                    },
+                    onOpenTimeline: {
+                        showTimeline = true
                     }
-                }
+                )
                 .transition(.asymmetric(
                     insertion: .move(edge: .trailing).combined(with: .opacity),
                     removal: .move(edge: .leading).combined(with: .opacity)
@@ -90,6 +96,17 @@ struct ContentView: View {
                 ))
             }
         }
+        .sheet(isPresented: $showTimeline) {
+            NavigationStack {
+                TimelineView()
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("閉じる") { showTimeline = false }
+                                .foregroundColor(Color.appGold)
+                        }
+                    }
+            }
+        }
     }
 }
 
@@ -105,4 +122,6 @@ extension Color {
 
 #Preview {
     ContentView()
+        .environmentObject(StoreManager())
+        .environmentObject(ReadingStore.shared)
 }
