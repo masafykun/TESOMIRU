@@ -32,3 +32,6 @@ DevTeam.xcconfig
 CLAUDE.md
 BUILD_LOG.md
 .claude/
+
+# Qiita draft
+qiita-draft.md
