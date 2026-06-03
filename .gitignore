@@ -18,8 +18,9 @@ Pods/
 .swiftpm/
 
 # App Store提出関連（GitHubには載せない、ローカル管理）
-screenshots/
-app-store-content/
+# NOTE: root-anchored so docs/screenshots/ (Qiita article assets) can be tracked
+/screenshots/
+/app-store-content/
 
 # Secrets — real endpoints & product IDs
 TESOMIRU/Config.swift
