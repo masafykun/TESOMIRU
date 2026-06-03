@@ -101,8 +101,8 @@ final class PalmReadingService {
     static let shared = PalmReadingService()
     private init() {}
 
-    private let analyzeURL = URL(string: "https://tesomiru.1qaz.jp/api/palm-reading")!
-    private let chatURL = URL(string: "https://tesomiru.1qaz.jp/api/palm-chat")!
+    private let analyzeURL = URL(string: Config.analyzeAPIURL)!
+    private let chatURL = URL(string: Config.chatAPIURL)!
 
     func analyze(image: UIImage) async throws -> PalmReadingResult {
         guard let imageData = image.jpegData(compressionQuality: 0.8) else {

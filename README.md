@@ -1,147 +1,160 @@
-# TESOMIRU - AI手相鑑定アプリ
+# TESOMIRU
 
-写真を撮るだけでAIが手相を鑑定。さらにその結果についてAI占い師と対話できる、iOS手相アプリ。
+> AI が手のひらを読む — iOS 手相鑑定アプリ（個人開発・App Store 申請まで完走、4.3(b) で却下）
 
-## 現状
+手のひらを撮影すると、バックエンドの LLM が生命線・感情線・頭脳線・運命線を解析して鑑定結果を返します。鑑定結果に対して AI と追加対話したり、過去の鑑定をタイムラインで振り返ることもできます。
 
-- **2026-05-16** 初回 App Store 審査提出
-- **2026-05-18** Apple から 4.3(b) Spam 却下 → AI対話・タイムライン機能を追加して再提出準備中
+![Swift](https://img.shields.io/badge/Swift-5.9+-FA7343?style=flat-square&logo=swift)
+![Xcode](https://img.shields.io/badge/Xcode-26+-147EFB?style=flat-square&logo=xcode)
+![iOS](https://img.shields.io/badge/iOS-26+-000000?style=flat-square&logo=apple)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)
 
-詳細な進捗は [BUILD_LOG.md](BUILD_LOG.md) を参照。
+---
 
-## 構成
+## 公開ステータス
 
-### iOS アプリ
-- **場所**: 当フォルダ `~/XcodeProject/TESOMIRU/`
-- **言語**: Swift / SwiftUI
-- **Bundle ID**: `org.masafy.TESOMIRU`
-- **Team ID**: `8XG6989CB4`
-- **Deployment Target**: iOS 26.4+
-- **Device**: iPhone専用（TARGETED_DEVICE_FAMILY = 1）
-- **Signing**: Automatic
+このアプリは **App Store でのリリースには至っていません**。Apple のレビューで Guideline **4.3(b) Design - Spam**（占い/手相は飽和カテゴリで差別化が不十分）として却下されました。AI 対話とタイムラインを差別化機能として実装しましたが、Apple の判断としては「カテゴリ自体を再考すべき」というものでした。
 
-### バックエンド
-- **稼働VPS**: `163.44.117.33` (port 43222 SSH, port 8010 内部)
-- **コード**: `/root/palm-reading/main.py`
-- **サービス**: `systemd: palm-reading.service`
-- **フレームワーク**: FastAPI + uvicorn
-- **AI**: OpenAI GPT-4o（鑑定）/ GPT-4o-mini（対話）
-- **画像保存**: しない（メモリ処理のみ）
+リジェクト体験談は Qiita に別途まとめています。コード自体は学習用に MIT で公開します。
 
-### 公開URL
-- API: https://tesomiru.1qaz.jp/api/palm-reading (POST, JPEG)
-- API: https://tesomiru.1qaz.jp/api/palm-chat (POST, JSON)
-- プライバシーポリシー: https://tesomiru.1qaz.jp/privacy
-- サポート: https://tesomiru.1qaz.jp/support
+---
 
-## 主要画面
+## ✨ 機能
 
-| ファイル | 役割 |
+- **AI 手相鑑定** — 手のひらの写真をバックエンドに送り、4 線をスコア付きで解析
+- **ラッキーカラー / ラッキーナンバー** — 鑑定結果に応じて提示
+- **AI 対話** — 鑑定結果について自然言語で追加質問できる。サジェスチョンチップ常時表示
+- **タイムライン** — 過去の鑑定を最大 50 件保存・再閲覧（チャット履歴付き）
+- **フリーミアム制限**
+  - 無料: 鑑定 1 日 2 回 / AI 会話 1 回
+  - プレミアム: 無制限 + タイムライン解放
+- **StoreKit 2** によるサブスクリプション（月額 / 年額）
+
+---
+
+## 🛠 技術スタック
+
+| カテゴリ | 技術 |
 |---|---|
-| `HomeView.swift` | スタート画面、鑑定回数表示、タイムライン導線 |
-| `CaptureView.swift` | 手のひら撮影/選択 |
-| `AnalyzingView.swift` | 解析中アニメーション、解析成功時に鑑定回数加算 |
-| `ResultView.swift` | 鑑定結果、AI質問導線、Paywall呼び出し |
-| `PaywallSheet.swift` | サブスク販売UI、StoreKit 2 |
-| `ChatView.swift` | AI占い師との対話 |
-| `TimelineView.swift` | 過去鑑定一覧（プレミアム限定） |
-| `ReadingDetailView.swift` | 過去鑑定詳細＋チャット履歴 |
+| 言語 | Swift |
+| UI | SwiftUI |
+| 最低対応 OS | iOS 26+ |
+| 永続化 | UserDefaults (Codable JSON) |
+| 課金 | StoreKit 2 |
+| ネットワーク | URLSession (multipart/form-data, JSON) |
+| バックエンド | FastAPI + uvicorn (Python) |
+| LLM | OpenAI GPT-4o (analyze) / GPT-4o-mini (chat) |
 
-## データ・ロジック層
+---
 
-| ファイル | 役割 |
-|---|---|
-| `PalmReadingService.swift` | API呼び出し（analyze, chat）、モデル定義 |
-| `StoreManager.swift` | StoreKit 2 ラッパー、サブスク状態管理 |
-| `ReadingStore.swift` | 過去鑑定の永続化（UserDefaults JSON）、日次回数カウンタ |
-| `Products.storekit` | シミュレータ用 StoreKit Configuration |
+## 📁 ディレクトリ構成
 
-## サブスク
+```
+TESOMIRU/
+├── TESOMIRU/
+│   ├── TESOMIRUApp.swift          # エントリポイント
+│   ├── ContentView.swift          # ルート View / 画面遷移
+│   ├── HomeView.swift             # ホーム（鑑定回数表示・タイムライン導線）
+│   ├── CaptureView.swift          # 手のひら撮影 / 写真選択
+│   ├── AnalyzingView.swift        # 解析中アニメーション
+│   ├── ResultView.swift           # 鑑定結果・AI 対話導線
+│   ├── ChatView.swift             # AI 占い師との対話
+│   ├── TimelineView.swift         # 過去鑑定一覧（プレミアム限定）
+│   ├── ReadingDetailView.swift    # 過去鑑定詳細 + チャット履歴
+│   ├── PaywallSheet.swift         # サブスク販売 UI
+│   ├── PalmReadingService.swift   # API 通信
+│   ├── StoreManager.swift         # StoreKit 2 ラッパー
+│   ├── ReadingStore.swift         # 鑑定の永続化 + 日次回数カウンタ
+│   ├── Config.swift.example       # 設定テンプレ（実体は gitignored）
+│   ├── Products.storekit.example  # StoreKit Config テンプレ（実体は gitignored）
+│   └── Assets.xcassets/
+├── TESOMIRU.xcodeproj/
+├── DevTeam.xcconfig.example       # 署名 Team ID テンプレ
+├── .gitignore
+└── README.md
+```
 
-- 商品グループ: `Premium`
-- 月額: `org.masafy.TESOMIRU.premium.monthly` (¥500/月)
-- 年額: `org.masafy.TESOMIRU.premium.yearly` (¥2,500/年, 実質¥208/月相当)
+---
 
-## フリーミアム制限
-
-| 機能 | 無料プラン | プレミアム |
-|---|---|---|
-| 手相鑑定 | 1日2回まで | 無制限 |
-| AI 会話 | 1回まで | 無制限 |
-| 各線詳細 | ロック（概要のみ） | 全解放 |
-| タイムライン | 不可 | 可 |
-| チャット履歴保存 | 不可 | 可 |
-
-## ビルド & 実行
-
-### Simulator（開発）
+## 🚀 セットアップ
 
 ```bash
-# Xcode で開く
+git clone https://github.com/masafykun/TESOMIRU.git
+cd TESOMIRU
+
+# 1. Config をローカル設定として作成
+cp TESOMIRU/Config.swift.example TESOMIRU/Config.swift
+# → 自分のバックエンドURL / IAP製品ID を書き込む
+
+# 2. StoreKit Configuration をローカル設定として作成
+cp TESOMIRU/Products.storekit.example TESOMIRU/Products.storekit
+# → 自分の IAP 製品 ID に書き換える
+
+# 3. Apple Developer Team ID をローカル設定として作成（実機ビルドする場合）
+cp DevTeam.xcconfig.example DevTeam.xcconfig
+# → 自分の Team ID を書き込む
+# Xcode で Project → Info → Configurations → 各ビルド設定に DevTeam.xcconfig を割当
+
+# 4. Xcode で開く
 open TESOMIRU.xcodeproj
-
-# またはCLIから（StoreKit Configurationを読みたいなら IDE推奨）
-xcodebuild -project TESOMIRU.xcodeproj \
-  -scheme TESOMIRU \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro Max' \
-  build
 ```
 
-**StoreKit Configurationが読まれない問題**: Xcode IDE経由じゃないと `Products.storekit` が読まれず、Paywallで「プラン情報を取得できませんでした」となる。本番では問題なし。
+`Config.swift` / `Products.storekit` / `DevTeam.xcconfig` は `.gitignore` 済み（API URL や Team ID を含むため）。
 
-### Release（提出用）
+---
+
+## 🌐 バックエンド API
+
+手相画像は `multipart/form-data` でアップロードし、JSON で鑑定結果が返ります。
+
+### 鑑定
 
 ```
-1. Xcodeでターゲットを「Any iOS Device (arm64)」に
-2. CURRENT_PROJECT_VERSION を上げる
-3. Product → Archive
-4. Organizer → Distribute App → App Store Connect → Upload
+POST /api/palm-reading
+Content-Type: multipart/form-data
+field "image": JPEG bytes
+
+→ {
+    "summary": String,
+    "lines": [{ "name": String, "description": String, "score": Int }],
+    "luckyColor": String,
+    "luckyNumber": Int
+  }
 ```
 
-## バックエンド作業（VPS）
+### 鑑定後の AI 対話
 
-```bash
-# SSH接続
-ssh -i ~/.ssh/key-2026-05-01-20-25.pem -p 43222 root@163.44.117.33
+```
+POST /api/palm-chat
+Content-Type: application/json
+{
+  "reading":  { summary, lines, luckyColor, luckyNumber },
+  "history":  [{ "role": "user"|"assistant", "content": String }],
+  "message":  String
+}
 
-# サービス再起動
-systemctl restart palm-reading
-
-# ログ
-journalctl -u palm-reading -n 30 --no-pager
-
-# 設定ファイル
-/root/palm-reading/main.py        # FastAPI
-/etc/nginx/sites-available/palm-reading  # nginx
+→ { "reply": String }
 ```
 
-## App Store Connect
+バックエンド本体（FastAPI 実装）はこのリポジトリには含まれていません。
 
-- アプリレコード: TESOMIRU - AI手相鑑定（Bundle: org.masafy.TESOMIRU）
-- カテゴリ: ライフスタイル / エンターテインメント
-- 年齢制限: 4+ または 9+（占いカテゴリで微変動）
-- スクショ場所: `screenshots/iphone-17-pro-max-6.9/` (7枚)
-- 説明文ドラフト: `app-store-content/01_metadata.md`
-- 審査ノートドラフト: `app-store-content/03_review_info.md`
+---
 
-## .gitignoreされてるもの
+## 💸 サブスクリプション
 
-- `screenshots/` （個人写真含むためGitHub非公開）
-- `app-store-content/` （価格・売上情報含む）
-- `**/xcuserdata/`
-- `DerivedData/`
+| プラン | 価格 | 製品 ID（例） |
+|---|---|---|
+| 月額 | ¥500 | `org.example.PalmReading.premium.monthly` |
+| 年額 | ¥2,500 | `org.example.PalmReading.premium.yearly` |
 
-## ハマりポイント記録
+App Store Connect 側で本番製品 ID と価格を登録し、`Config.swift` に同じ ID を書く運用です。
 
-- Apple価格ティアは固定。¥480/¥2,400は存在しない → ¥500/¥2,500採用
-- App Store Connect の説明文で罫線記号(`━━`)・絵文字の一部が「無効」判定
-- TARGETED_DEVICE_FAMILY が "1,2" だと iPad スクショ必須。iPhone専用にするなら "1"
-- iOS 26.5 でビルドするには iOS 26.5 simruntime が必要
-- ChatGPTで AppIcon 生成時は「角丸なし、透過なし、1024x1024 PNG、テキストなし」を強調
+---
 
-## 関連ドキュメント
+## 📝 ライセンス
 
-- [BUILD_LOG.md](BUILD_LOG.md) - 作業日誌
-- [CLAUDE.md](CLAUDE.md) - Claude セッション運用指示
-- [app-store-content/](app-store-content/) - App Store 提出用テキストドラフト
-- [screenshots/](screenshots/) - App Store提出スクショ
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+
+このプロジェクトは **MIT ライセンス** のもとで公開しています。
+
+© 2026 masafykun

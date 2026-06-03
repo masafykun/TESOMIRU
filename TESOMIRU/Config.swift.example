@@ -1,0 +1,15 @@
+// Copy this file to Config.swift (Config.swift is gitignored).
+// Then fill in your own API endpoints and IAP product IDs.
+enum Config {
+    // Backend API
+    static let analyzeAPIURL = "https://your-backend.example.com/api/palm-reading"
+    static let chatAPIURL    = "https://your-backend.example.com/api/palm-chat"
+
+    // Support / Privacy URLs (shown on paywall)
+    static let supportURL = "https://your-backend.example.com/support"
+    static let privacyURL = "https://your-backend.example.com/privacy"
+
+    // StoreKit product IDs (must match App Store Connect / Products.storekit)
+    static let monthlyProductID = "org.example.PalmReading.premium.monthly"
+    static let yearlyProductID  = "org.example.PalmReading.premium.yearly"
+}

@@ -9,8 +9,8 @@ enum StoreError: Error {
 @MainActor
 final class StoreManager: ObservableObject {
     static let productIds = [
-        "org.masafy.TESOMIRU.premium.monthly",
-        "org.masafy.TESOMIRU.premium.yearly",
+        Config.monthlyProductID,
+        Config.yearlyProductID,
     ]
 
     @Published private(set) var products: [Product] = []

@@ -12,6 +12,23 @@ DerivedData/
 *.dSYM.zip
 *.dSYM
 
+# CocoaPods / SwiftPM
+Pods/
+.build/
+.swiftpm/
+
 # App Store提出関連（GitHubには載せない、ローカル管理）
 screenshots/
 app-store-content/
+
+# Secrets — real endpoints & product IDs
+TESOMIRU/Config.swift
+TESOMIRU/Products.storekit
+
+# Local code-signing config (real Apple Developer Team ID)
+DevTeam.xcconfig
+
+# Claude Code (AI agent local context — never publish)
+CLAUDE.md
+BUILD_LOG.md
+.claude/

@@ -6,7 +6,7 @@ struct PaywallSheet: View {
 
     @EnvironmentObject private var store: StoreManager
     @Environment(\.dismiss) private var dismiss
-    @State private var selectedProductId: String = "org.masafy.TESOMIRU.premium.yearly"
+    @State private var selectedProductId: String = Config.yearlyProductID
     @State private var isPurchasing = false
     @State private var isRestoring = false
     @State private var errorMessage: String?
@@ -298,10 +298,10 @@ struct PaywallSheet: View {
                 .foregroundColor(Color.appSubtext)
 
             HStack(spacing: 14) {
-                Link("利用規約", destination: URL(string: "https://tesomiru.1qaz.jp/support")!)
+                Link("利用規約", destination: URL(string: Config.supportURL)!)
                     .font(.system(size: 11))
                     .foregroundColor(Color.appSubtext.opacity(0.8))
-                Link("プライバシーポリシー", destination: URL(string: "https://tesomiru.1qaz.jp/privacy")!)
+                Link("プライバシーポリシー", destination: URL(string: Config.privacyURL)!)
                     .font(.system(size: 11))
                     .foregroundColor(Color.appSubtext.opacity(0.8))
             }
